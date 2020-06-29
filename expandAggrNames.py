@@ -9,10 +9,18 @@ from termcolor import cprint
 
 """
 Expand names from aggregated colunm
+i.e.: from IA_Guthrie_County_modified_wDist_filtered.csv:
+
+                                                   index                            name_alias mail_address_alias mailing_city mailing_state clean_zip calc_acreage
+HARPER KREG HARPER DOYLE DEED ( 229.82),STEVENS...    10  STEVENS FAMILY FARM LLC DEED et. al.        2202 4TH ST       ELDORA            IA     50627       522.99
+
+
+12       229.82     50627         2202 4TH ST       ELDORA            IA                     HARPER KREG HARPER DOYLE DEED   Guthrie    IA
+13       293.17     50627         2202 4TH ST       ELDORA            IA                      STEVENS FAMILY FARM LLC DEED   Guthrie    IA
 """
 
-DEBUG = True
-# DEBUG = False
+# DEBUG = True
+DEBUG = False
 
 if __name__ == "__main__":
 
@@ -56,10 +64,10 @@ if __name__ == "__main__":
         # print outFile
 
     # Use os and fnmatch to list all files matching matchPattern of the file type CSV in the current directory
-    print 'allFiles  ', allFiles
+    # print 'allFiles  ', allFiles
     csv_files = fnmatch.filter(dirFiles, matchPattern)
 
-    print csv_files
+    # print csv_files
 
     # list to collect all loaded CSV files into dataframes
     # dfs = [pd.read_csv('.' + os.sep + csv_file) for csv_file in csv_files]
@@ -79,15 +87,14 @@ if __name__ == "__main__":
         r1 = re.match(matchNamePattern, csv_file)
 
         county= r1.groups()[0]
-        cprint("County %s " % county, 'red')
 
         # find all not-null rows indexes on the 'aggregated_Names' columm
         withAggregate = np.where(df1['aggregated_Names'].notnull())[0]
 
-        cprint (withAggregate, 'green')
         newDf = df1.loc[withAggregate]
 
-        cprint (newDf, 'blue')
+        # cprint("County %s " % county, 'red')
+        # cprint (newDf, 'blue')
 
 
         aggregateList = newDf.aggregated_Names.values
@@ -97,7 +104,7 @@ if __name__ == "__main__":
         newDf.set_index('aggregated_Names', inplace=True)
         for names in aggregateList:
             rowName = newDf.loc[names,:].to_frame().T
-            cprint ( rowName, 'cyan')
+            # cprint ( rowName, 'cyan')
             mamesPerEntry = names.split(',')
             numLines = len(mamesPerEntry)
 
@@ -105,23 +112,28 @@ if __name__ == "__main__":
                 name,acres = i.split('(')
                 rowName.name_alias = name
                 rowName.calc_acreage = acres.replace(')','')
-                expandAggr = pd.concat([expandAggr, rowName], ignore_index=True)
+                expandAggr = pd.concat([expandAggr, rowName], ignore_index=True,sort=True)
 
-            for entry in mamesPerEntry:
-                print entry
 
-        cprint(expandAggr, 'green')
+        # cprint(expandAggr, 'green')
 
         expandAggr.drop(columns=['index'], inplace=True)
 
+        expandAggr['County'] = pd.Series([county] * len(expandAggr))
+        expandAggr['State'] = pd.Series([state] * len(expandAggr))
+        expandAggr['name_alias'] = expandAggr['name_alias'].str.replace('DEED', '')
 
+        # """
+        # remove redundant names, concatenate 'new' expanded dayaframe with read dataframe
+        # """
         df1.drop(withAggregate, inplace=True)
+
+        df1['County'] = county
+        df1['State'] = state
+        df1['name_alias'] = df1['name_alias'].str.replace('DEED', '')
 
         df1 =  pd.concat([df1, expandAggr], ignore_index=True, sort=True)
 
-        # """
-        # add a Series with County name repeated as many times as rows, as a new Column 'County'
-        # """
         dfs.append((df1))
 
 
@@ -132,7 +144,6 @@ if __name__ == "__main__":
         if DEBUG:
 
             print aggregatedDf
-            # print withAggregate
         else:
             aggregatedDf.to_csv(outFile, index=False)
 
