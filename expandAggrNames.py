@@ -8,6 +8,7 @@ import pandas as pd
 from termcolor import cprint
 
 # this is a change to test git
+
 """
 Expand names from aggregated colunm
 i.e.: from IA_Guthrie_County_modified_wDist_filtered.csv:
@@ -22,6 +23,7 @@ HARPER KREG HARPER DOYLE DEED ( 229.82),STEVENS...    10  STEVENS FAMILY FARM LL
 
 # DEBUG = True
 DEBUG = False
+PARTIAL_DEBUG=True      # just to modify master branch
 
 if __name__ == "__main__":
 
