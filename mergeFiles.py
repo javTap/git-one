@@ -9,6 +9,8 @@ from optparse import OptionParser
 
 import pandas as pd
 
+DEBUG=True
+
 if __name__ == "__main__":
 
     parser = OptionParser( usage='usage: python %prog -i input_file -p postFix_pattern  -s state', version="%prog 0.2")
